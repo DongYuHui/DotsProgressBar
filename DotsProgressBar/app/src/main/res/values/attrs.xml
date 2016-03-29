@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="DotsProgressBar">
+        <attr name="barDotsCount" format="integer|reference"/>
+        <attr name="barDotsRadius" format="dimension|reference"/>
+        <attr name="barProgressWidth" format="dimension|reference"/>
+        <attr name="barBackColor" format="color|reference"/>
+        <attr name="barFrontColor" format="color|reference"/>
+        <attr name="barSpeed" format="integer"/>
+    </declare-styleable>
+
+</resources>
