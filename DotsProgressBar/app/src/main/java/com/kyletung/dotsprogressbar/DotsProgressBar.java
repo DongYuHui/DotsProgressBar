@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.animation.AccelerateInterpolator;
 
 /**
  * All rights reserved by Author<br>
@@ -108,7 +109,8 @@ public class DotsProgressBar extends View {
         mDotsCount = typedArray.getInt(R.styleable.DotsProgressBar_barDotsCount, 2);
         mDotsRadius = typedArray.getDimensionPixelSize(R.styleable.DotsProgressBar_barDotsRadius, dp2px(8));
         mDotsProgressWidth = typedArray.getDimensionPixelSize(R.styleable.DotsProgressBar_barProgressWidth, dp2px(8));
-        if ((2 * mDotsRadius) < mDotsProgressWidth) mDotsProgressWidth = mDotsRadius * 2;
+        if ((2 * mDotsRadius) < mDotsProgressWidth)
+            mDotsProgressWidth = mDotsRadius * 2; // 如果用户设置进度条的宽度大于点的直径，则设置为半径大小
         mDotsProgressWidthHalf = mDotsProgressWidth / 2;
         mSpeed = typedArray.getInt(R.styleable.DotsProgressBar_barSpeed, 100);
         mSpeedTime = 10 * 10 / mSpeed;
@@ -178,7 +180,7 @@ public class DotsProgressBar extends View {
     private void drawForward(Canvas canvas, Paint paint, int start, int time) {
         if (time < (mSpeedTime * 90)) {
             // 画矩形
-            int rectWidth = time * mPartWidth / (mSpeedTime * 90 );
+            int rectWidth = time * mPartWidth / (mSpeedTime * 90);
             canvas.drawRect(start, mHeight / 2 - mDotsProgressWidthHalf, start + rectWidth, mHeight / 2 + mDotsProgressWidthHalf, paint);
         } else {
             // 画矩形和圆
@@ -197,6 +199,15 @@ public class DotsProgressBar extends View {
             mPartTime = 0;
             invalidate();
         }
+    }
+
+    /**
+     * 通过该方法返回需要绘制的进度条的长度及圆点的半径
+     * @return 返回一个整型数组，数组第一个表示进度条的长度，数组第二个表示圆点的半径
+     */
+    private int[] getParams() {
+        final int[] params = new int[2];
+        return params;
     }
 
     /**
