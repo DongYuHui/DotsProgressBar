@@ -154,9 +154,9 @@ public class DotsProgressBar extends View {
         // 画切换过程中不变的部分
         drawNotChange(canvas, mPaint, Math.min(mOldPosition, mNewPosition));
         // 画变化的部分
-        int start = mOldPosition * mPartWidth + mDotsRadius;
-        if (mOldPosition < 0) start = mDotsRadius;
+        int start = Math.min(mOldPosition, mNewPosition) * mPartWidth + mDotsRadius;
         if (mNewPosition > mOldPosition) {
+            if (mOldPosition < 0) start = mDotsRadius;
             // 进度条向前
             mPartTime = mPartTime + mTimeGap;
             int[] params = getForwardParams();
@@ -169,6 +169,7 @@ public class DotsProgressBar extends View {
             }
         }
         if (mNewPosition < mOldPosition) {
+            if (mNewPosition < 0) start = mDotsRadius;
             // 进度条向后
             mPartTime = mPartTime + mTimeGap;
             int[] params = getBackParams();
@@ -206,13 +207,16 @@ public class DotsProgressBar extends View {
      * 进度条向前进一
      */
     public void startForward() {
-        if (mOldPosition < mDotsCount) {
+        if (mOldPosition < (mDotsCount - 1)) {
             mNewPosition = mOldPosition + 1;
             mPartTime = 0;
             invalidate();
         }
     }
 
+    /**
+     * 进度条向后退一
+     */
     public void startBack() {
         if (mOldPosition >= 0) {
             mNewPosition = mOldPosition - 1;
@@ -266,23 +270,23 @@ public class DotsProgressBar extends View {
      */
     private int[] getBackParams() {
         final int[] params = new int[2];
-        float x = 1 - (float) mPartTime / (mSpeed * mTimeGap);
+        float x = (float) mPartTime / (mSpeed * mTimeGap);
         float y = mInterpolator.getInterpolation(x);
         if (mNewPosition < 0) {
             params[0] = 0;
-            params[1] = (int) (y * mDotsRadius);
+            params[1] = mDotsRadius - (int) (y * mDotsRadius);
         } else if (mOldPosition < 0) {
             params[0] = 0;
             params[0] = 0;
         } else {
-            if (y < 0.9) {
+            if (y > 0.1) {
                 // 此时进度条还没有进入节点
-                params[0] = (int) (mPartWidth * (y / 0.9));
+                params[0] = mPartWidth - (int) (mPartWidth * (y / 0.9));
                 params[1] = mDotsProgressWidthHalf;
             } else {
                 // 此时进度条的长条已经加载完毕，还有终点的变化
                 params[0] = mPartWidth;
-                params[1] = (int) ((mDotsRadius - mDotsProgressWidthHalf) * ((y - 0.9) / 0.1)) + mDotsProgressWidthHalf;
+                params[1] = (int) (mDotsRadius - (mDotsRadius - mDotsProgressWidthHalf) * (y / 0.1));
             }
         }
         return params;

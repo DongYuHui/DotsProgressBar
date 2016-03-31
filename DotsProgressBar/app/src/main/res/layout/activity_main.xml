@@ -33,7 +33,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="8dp"
-                    app:barDotsCount="4"
+                    app:barDotsCount="5"
                     app:barDotsRadius="8dp"
                     app:barProgressWidth="8dp"
                     app:barSpeed="normal"/>
