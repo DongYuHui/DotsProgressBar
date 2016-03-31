@@ -41,6 +41,12 @@ public class MainActivity extends AppCompatActivity {
                 mDotsProgressBar.startForward();
             }
         });
+        mBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mDotsProgressBar.startBack();
+            }
+        });
     }
 
 }

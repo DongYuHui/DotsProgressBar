@@ -2,12 +2,22 @@
 <resources>
 
     <declare-styleable name="DotsProgressBar">
-        <attr name="barDotsCount" format="integer|reference"/>
+        <!-- 前进的速度 -->
+        <attr name="barSpeed">
+            <enum name="normal" value="40"/>
+            <enum name="slow" value="80"/>
+            <enum name="fast" value="10"/>
+        </attr>
+        <!-- 节点的数量 -->
+        <attr name="barDotsCount" format="integer"/>
+        <!-- 节点的圆半径 -->
         <attr name="barDotsRadius" format="dimension|reference"/>
+        <!-- 进度条的宽度 -->
         <attr name="barProgressWidth" format="dimension|reference"/>
+        <!-- 进度条的背景色 -->
         <attr name="barBackColor" format="color|reference"/>
+        <!-- 进度条的前景色 -->
         <attr name="barFrontColor" format="color|reference"/>
-        <attr name="barSpeed" format="integer"/>
     </declare-styleable>
 
 </resources>

@@ -73,12 +73,12 @@ public class DotsProgressBar extends View {
     /**
      * 原先的进度在某个点
      */
-    private int mOldPosition = 2;
+    private int mOldPosition = -1;
 
     /**
      * 新的进度在某个点
      */
-    private int mNewPosition = 2;
+    private int mNewPosition = -1;
 
     /**
      * 控件宽度
@@ -95,6 +95,9 @@ public class DotsProgressBar extends View {
      */
     private int mPartWidth;
 
+    /**
+     * 使用插值器来获得进度值，这样不仅简化了获取进度值的过程，还可以向外提供可定制性
+     */
     private Interpolator mInterpolator;
 
     public DotsProgressBar(Context context) {
@@ -116,10 +119,8 @@ public class DotsProgressBar extends View {
             mDotsProgressWidth = mDotsRadius * 2; // 如果用户设置进度条的宽度大于点的直径，则设置为半径大小
         mDotsProgressWidthHalf = mDotsProgressWidth / 2;
         // 获取用户定义的时间，并转化成时间间隔
-        mSpeed = typedArray.getInt(R.styleable.DotsProgressBar_barSpeed, 100);
-        if (mSpeed < 0) mSpeed = 0;
-        if (mSpeed > 100) mSpeed = 100;
-        mTimeGap = (1000 - 9 * mSpeed) / 100;
+        mSpeed = typedArray.getInt(R.styleable.DotsProgressBar_barSpeed, 40);
+        mTimeGap = 1;
         // 获取用户定义的进度条背景色与前景色
         mDotsBackColor = typedArray.getColor(R.styleable.DotsProgressBar_barBackColor, ContextCompat.getColor(context, android.R.color.darker_gray));
         mDotsFrontColor = typedArray.getColor(R.styleable.DotsProgressBar_barFrontColor, ContextCompat.getColor(context, android.R.color.holo_blue_light));
@@ -153,22 +154,28 @@ public class DotsProgressBar extends View {
         // 画切换过程中不变的部分
         drawNotChange(canvas, mPaint, Math.min(mOldPosition, mNewPosition));
         // 画变化的部分
-        int start = (mOldPosition - 1) * mPartWidth + mDotsRadius;
+        int start = mOldPosition * mPartWidth + mDotsRadius;
+        if (mOldPosition < 0) start = mDotsRadius;
         if (mNewPosition > mOldPosition) {
             // 进度条向前
             mPartTime = mPartTime + mTimeGap;
-//            drawForward(canvas, mPaint, start, mPartTime);
-//            if (mPartTime < (mTimeGap * 100)) {
-//                postInvalidateDelayed(mTimeGap);
-//            } else {
-//                mOldPosition = mNewPosition;
-//            }
-            int[] params = getParams();
+            int[] params = getForwardParams();
             canvas.drawRect(start, mHeight / 2 - mDotsProgressWidthHalf, start + params[0], mHeight / 2 + mDotsProgressWidthHalf, mPaint);
             canvas.drawCircle(start + params[0], mHeight / 2, params[1], mPaint);
-            if (mPartTime < (mTimeGap * 100)) {
-//                postInvalidateDelayed(mTimeGap);
-                invalidate();
+            if (mPartTime < (mTimeGap * mSpeed)) {
+                postInvalidateDelayed(1);
+            } else {
+                mOldPosition = mNewPosition;
+            }
+        }
+        if (mNewPosition < mOldPosition) {
+            // 进度条向后
+            mPartTime = mPartTime + mTimeGap;
+            int[] params = getBackParams();
+            canvas.drawRect(start, mHeight / 2 - mDotsProgressWidthHalf, start + params[0], mHeight / 2 + mDotsProgressWidthHalf, mPaint);
+            canvas.drawCircle(start + params[0], mHeight / 2, params[1], mPaint);
+            if (mPartTime < (mTimeGap * mSpeed)) {
+                postInvalidateDelayed(1);
             } else {
                 mOldPosition = mNewPosition;
             }
@@ -183,28 +190,15 @@ public class DotsProgressBar extends View {
      * @param position 不变的位置
      */
     private void drawNotChange(Canvas canvas, Paint paint, int position) {
-        if (position != 0) {
+        if (position >= 0) {
             // 画矩形
-            if (position - 1 != 0) {
-                canvas.drawRect(mDotsRadius, mHeight / 2 - mDotsProgressWidthHalf, mDotsRadius + mPartWidth * (position - 1), mHeight / 2 + mDotsProgressWidthHalf, mPaint);
+            if (position != 0) {
+                canvas.drawRect(mDotsRadius, mHeight / 2 - mDotsProgressWidthHalf, mDotsRadius + mPartWidth * position, mHeight / 2 + mDotsProgressWidthHalf, mPaint);
             }
             // 画圆
-            for (int i = 0; i < position; i++) {
+            for (int i = 0; i < (position + 1); i++) {
                 canvas.drawCircle(mDotsRadius + mPartWidth * i, mDotsRadius, mDotsRadius, paint);
             }
-        }
-    }
-
-    private void drawForward(Canvas canvas, Paint paint, int start, int time) {
-        if (time < (mTimeGap * 90)) {
-            // 画矩形
-            int rectWidth = time * mPartWidth / (mTimeGap * 90);
-            canvas.drawRect(start, mHeight / 2 - mDotsProgressWidthHalf, start + rectWidth, mHeight / 2 + mDotsProgressWidthHalf, paint);
-        } else {
-            // 画矩形和圆
-            int radius = ((time - mTimeGap * 90) / (mTimeGap * 10)) * mDotsRadius;
-            canvas.drawRect(start, mHeight / 2 - mDotsProgressWidthHalf, start + mPartWidth, mHeight / 2 + mDotsProgressWidthHalf, paint);
-            canvas.drawCircle(start + mPartWidth, mHeight / 2, radius, paint);
         }
     }
 
@@ -214,6 +208,14 @@ public class DotsProgressBar extends View {
     public void startForward() {
         if (mOldPosition < mDotsCount) {
             mNewPosition = mOldPosition + 1;
+            mPartTime = 0;
+            invalidate();
+        }
+    }
+
+    public void startBack() {
+        if (mOldPosition >= 0) {
+            mNewPosition = mOldPosition - 1;
             mPartTime = 0;
             invalidate();
         }
@@ -229,27 +231,60 @@ public class DotsProgressBar extends View {
     }
 
     /**
-     * 通过该方法返回需要绘制的进度条的长度及圆点的半径
+     * 通过该方法返回需要绘制的进度条的长度及圆点的半径，向前
      *
      * @return 返回一个整型数组，数组第一个表示进度条的长度，数组第二个表示圆点的半径
      */
-    private int[] getParams() {
+    private int[] getForwardParams() {
         final int[] params = new int[2];
-        float x = (float) mPartTime / (100 * mTimeGap);
-//        System.out.println(x);
+        float x = (float) mPartTime / (mSpeed * mTimeGap);
         float y = mInterpolator.getInterpolation(x);
-//        System.out.println((mPartTime / (100 * mTimeGap)));
-//        System.out.println(y + "");
-        if (y < 0.9) {
-            // 此时进度条还没有进入节点
-            params[0] = (int) (mPartWidth * (y / 0.9));
-            params[1] = mDotsProgressWidthHalf;
+        if (mOldPosition < 0) {
+            params[0] = 0;
+            params[1] = (int) (y * mDotsRadius);
+        } else if (mOldPosition == mDotsCount - 1) {
+            params[0] = 0;
+            params[0] = 0;
         } else {
-            // 此时进度条的长条已经加载完毕，还有终点的变化
-            params[0] = mPartWidth;
-            params[1] = (int) ((mDotsRadius - mDotsProgressWidthHalf) * ((y - 0.9) / 0.1)) + mDotsProgressWidthHalf;
+            if (y < 0.9) {
+                // 此时进度条还没有进入节点
+                params[0] = (int) (mPartWidth * (y / 0.9));
+                params[1] = mDotsProgressWidthHalf;
+            } else {
+                // 此时进度条的长条已经加载完毕，还有终点的变化
+                params[0] = mPartWidth;
+                params[1] = (int) ((mDotsRadius - mDotsProgressWidthHalf) * ((y - 0.9) / 0.1)) + mDotsProgressWidthHalf;
+            }
         }
-//        System.out.println(params[0] + " " + params[1]);
+        return params;
+    }
+
+    /**
+     * 通过该方法返回需要绘制的进度条的长度及圆点的半径，向后
+     *
+     * @return 返回一个整型数组，数组第一个表示进度条的长度，数组第二个表示圆点的半径
+     */
+    private int[] getBackParams() {
+        final int[] params = new int[2];
+        float x = 1 - (float) mPartTime / (mSpeed * mTimeGap);
+        float y = mInterpolator.getInterpolation(x);
+        if (mNewPosition < 0) {
+            params[0] = 0;
+            params[1] = (int) (y * mDotsRadius);
+        } else if (mOldPosition < 0) {
+            params[0] = 0;
+            params[0] = 0;
+        } else {
+            if (y < 0.9) {
+                // 此时进度条还没有进入节点
+                params[0] = (int) (mPartWidth * (y / 0.9));
+                params[1] = mDotsProgressWidthHalf;
+            } else {
+                // 此时进度条的长条已经加载完毕，还有终点的变化
+                params[0] = mPartWidth;
+                params[1] = (int) ((mDotsRadius - mDotsProgressWidthHalf) * ((y - 0.9) / 0.1)) + mDotsProgressWidthHalf;
+            }
+        }
         return params;
     }
 
