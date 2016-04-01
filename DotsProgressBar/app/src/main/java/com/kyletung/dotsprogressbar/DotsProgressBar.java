@@ -281,7 +281,7 @@ public class DotsProgressBar extends View {
         } else {
             if (y > 0.1) {
                 // 此时进度条还没有进入节点
-                params[0] = mPartWidth - (int) (mPartWidth * (y / 0.9));
+                params[0] = mPartWidth - (int) (mPartWidth * ((y - 0.1) / 0.9));
                 params[1] = mDotsProgressWidthHalf;
             } else {
                 // 此时进度条的长条已经加载完毕，还有终点的变化
@@ -289,6 +289,7 @@ public class DotsProgressBar extends View {
                 params[1] = (int) (mDotsRadius - (mDotsRadius - mDotsProgressWidthHalf) * (y / 0.1));
             }
         }
+        System.out.println(params[0] + " " + params[1]);
         return params;
     }
 
