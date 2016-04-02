@@ -1,3 +1,9 @@
 <resources>
+
+    <!--Application-->
     <string name="app_name">DotsProgressBar</string>
+
+    <!--TestFragment-->
+    <string name="test_content">Test %s</string>
+
 </resources>
