@@ -197,7 +197,7 @@ public class DotsProgressBar extends View {
             } else {
                 // 说明动画已经结束，我们只需要绘制正确的前景进度
                 int start = mDotsRadius + mOldPosition * mPartWidth;
-                canvas.drawRect(mDotsRadius, mDotsRadius - mDotsProgressWidthHalf, mDotsRadius + start, mDotsRadius + mDotsProgressWidthHalf, mPaint);
+                canvas.drawRect(mDotsRadius, mDotsRadius - mDotsProgressWidthHalf, start, mDotsRadius + mDotsProgressWidthHalf, mPaint);
                 for (int i = 0; i < (mOldPosition + 1); i++) {
                     canvas.drawCircle(mDotsRadius + i * mPartWidth, mDotsRadius, mDotsRadius, mPaint);
                 }
