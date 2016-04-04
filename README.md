@@ -2,6 +2,8 @@
 
 该自定义控件来源于一个项目中的需求，虽然当时取消了此功能点，但是个人认为自己实现一下是值得的，多多练习自定义控件非常地有必要。该自定义控件是为了在引导用户的若干个步骤中呈现一个进度条，大致的效果如下：
 
+![DotsProgressBar](https://github.com/DongYuHui/DotsProgressBar/blob/master/gif-demo.gif)
+
 这里简略记录一下实现的过程：
 
 ## 一、明确需求 ##
